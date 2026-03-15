@@ -13,9 +13,9 @@ This monorepo uses **Module Federation** to implement a Micro-frontend (MFE) arc
 ## 🛠️ Project Structure
 
 * `apps/shell`: The Host application.
-* `apps/shop`: Remote MFE (Product catalog).
-* `apps/checkout`: Remote MFE (Payment flow).
-* `libs/shared/auth`: Shared authentication state.
+* `apps/profile`: Remote MFE .
+* `apps/projects`: Remote MFE .
+* `libs/shared/ui`: Shared ui .
 
 ---
 
@@ -26,7 +26,7 @@ This monorepo uses **Module Federation** to implement a Micro-frontend (MFE) arc
 To run the Host and **all** associated remotes simultaneously:
 
 ```bash
-npx nx serve shell --devRemotes=shop,checkout
+npx nx serve shell --devRemotes=profile,projects
 
 ```
 
@@ -35,7 +35,7 @@ npx nx serve shell --devRemotes=shop,checkout
 If you are only working on one remote, you can run it standalone to save memory:
 
 ```bash
-npx nx serve shop
+npx nx serve profile
 
 ```
 
@@ -73,7 +73,7 @@ Module Federation allows us to share singleton instances of libraries (like `@an
 2. **Update Manifest:** The `shell` uses a `module-federation.manifest.json` (or hardcoded URLs) to find the remotes. Ensure these URLs point to your production CDN.
 
 ```bash
-npx nx build shop --prod
+npx nx build profile --prod
 npx nx build shell --prod
 
 ```
@@ -82,7 +82,7 @@ npx nx build shell --prod
 
 ## 🧪 Testing
 
-* **Unit Tests:** `npx nx test shop`
+* **Unit Tests:** `npx nx test profile`
 * **E2E (Cypress):** `npx nx e2e shell-e2e` (This will test the integration of all MFEs).
 
 ---
