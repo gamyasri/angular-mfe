@@ -1,96 +1,92 @@
-# AngularMfe
+# 🧩 Angular Module Federation Workspace
 
-<a alt="Nx logo" href="https://nx.dev" target="_blank" rel="noreferrer"><img src="https://raw.githubusercontent.com/nrwl/nx/master/images/nx-logo.png" width="45"></a>
+This monorepo uses **Module Federation** to implement a Micro-frontend (MFE) architecture. This allows multiple teams to build, ship, and deploy Angular applications independently while sharing a single runtime shell.
 
-✨ Your new, shiny [Nx workspace](https://nx.dev) is ready ✨.
+## 🏗️ Architecture Overview
 
-[Learn more about this workspace setup and its capabilities](https://nx.dev/getting-started/intro#learn-nx?utm_source=nx_project&amp;utm_medium=readme&amp;utm_campaign=nx_projects) or run `npx nx graph` to visually explore what was created. Now, let's get you up to speed!
+* **Host (Shell):** The main entry point. It handles routing, shared authentication, and dynamic loading of remotes.
+* **Remotes (Micro-apps):** Independent applications (e.g., `inventory`, `billing`) that are "plugged in" to the Host at runtime.
+* **Shared Libs:** Logic used by both Host and Remotes (e.g., `data-access`, `ui-kit`).
 
-## Run tasks
+---
 
-To run tasks with Nx use:
+## 🛠️ Project Structure
 
-```sh
-npx nx <target> <project-name>
+* `apps/shell`: The Host application.
+* `apps/shop`: Remote MFE (Product catalog).
+* `apps/checkout`: Remote MFE (Payment flow).
+* `libs/shared/auth`: Shared authentication state.
+
+---
+
+## 🚀 Local Development
+
+### Running the Entire System
+
+To run the Host and **all** associated remotes simultaneously:
+
+```bash
+npx nx serve shell --devRemotes=shop,checkout
+
 ```
 
-For example:
+### Running Individually
 
-```sh
-npx nx build myproject
+If you are only working on one remote, you can run it standalone to save memory:
+
+```bash
+npx nx serve shop
+
 ```
 
-These targets are either [inferred automatically](https://nx.dev/concepts/inferred-tasks?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects) or defined in the `project.json` or `package.json` files.
+---
 
-[More about running tasks in the docs &raquo;](https://nx.dev/features/run-tasks?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
+## 📦 How to Add a New Remote
 
-## Add new projects
+To add a new micro-frontend to this workspace, use the Nx generator:
 
-While you could add new projects to your workspace manually, you might want to leverage [Nx plugins](https://nx.dev/concepts/nx-plugins?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects) and their [code generation](https://nx.dev/features/generate-code?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects) feature.
+```bash
+npx nx g @nx/angular:remote my-new-app --host=shell
 
-To install a new plugin you can use the `nx add` command. Here's an example of adding the React plugin:
-```sh
-npx nx add @nx/react
 ```
 
-Use the plugin's generator to create new projects. For example, to create a new React app or library:
+This command automatically:
 
-```sh
-# Generate an app
-npx nx g @nx/react:app demo
+1. Creates the app in `apps/my-new-app`.
+2. Configures `module-federation.config.js`.
+3. Adds the remote definition to the `shell` application's configuration.
 
-# Generate a library
-npx nx g @nx/react:lib some-lib
+---
+
+## 🔗 Shared Dependencies
+
+Module Federation allows us to share singleton instances of libraries (like `@angular/core` or `rxjs`) so they aren't downloaded multiple times.
+
+* Check `module-federation.config.js` in each app to see which libraries are marked as shared.
+* **Version Mismatch:** Ensure all apps use the same version of Angular to avoid "Version Mismatch" errors at runtime.
+
+---
+
+## 🚢 Deployment Strategy
+
+1. **Build Remotes First:** Each remote should be built and deployed to its own bucket/server.
+2. **Update Manifest:** The `shell` uses a `module-federation.manifest.json` (or hardcoded URLs) to find the remotes. Ensure these URLs point to your production CDN.
+
+```bash
+npx nx build shop --prod
+npx nx build shell --prod
+
 ```
 
-You can use `npx nx list` to get a list of installed plugins. Then, run `npx nx list <plugin-name>` to learn about more specific capabilities of a particular plugin. Alternatively, [install Nx Console](https://nx.dev/getting-started/editor-setup?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects) to browse plugins and generators in your IDE.
+---
 
-[Learn more about Nx plugins &raquo;](https://nx.dev/concepts/nx-plugins?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects) | [Browse the plugin registry &raquo;](https://nx.dev/plugin-registry?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
+## 🧪 Testing
 
-## Set up CI!
+* **Unit Tests:** `npx nx test shop`
+* **E2E (Cypress):** `npx nx e2e shell-e2e` (This will test the integration of all MFEs).
 
-### Step 1
+---
 
-To connect to Nx Cloud, run the following command:
+### Pro-Tip for Module Federation:
 
-```sh
-npx nx connect
-```
-
-Connecting to Nx Cloud ensures a [fast and scalable CI](https://nx.dev/ci/intro/why-nx-cloud?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects) pipeline. It includes features such as:
-
-- [Remote caching](https://nx.dev/ci/features/remote-cache?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
-- [Task distribution across multiple machines](https://nx.dev/ci/features/distribute-task-execution?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
-- [Automated e2e test splitting](https://nx.dev/ci/features/split-e2e-tasks?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
-- [Task flakiness detection and rerunning](https://nx.dev/ci/features/flaky-tasks?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
-
-### Step 2
-
-Use the following command to configure a CI workflow for your workspace:
-
-```sh
-npx nx g ci-workflow
-```
-
-[Learn more about Nx on CI](https://nx.dev/ci/intro/ci-with-nx#ready-get-started-with-your-provider?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
-
-## Install Nx Console
-
-Nx Console is an editor extension that enriches your developer experience. It lets you run tasks, generate code, and improves code autocompletion in your IDE. It is available for VSCode and IntelliJ.
-
-[Install Nx Console &raquo;](https://nx.dev/getting-started/editor-setup?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
-
-## Useful links
-
-Learn more:
-
-- [Learn more about this workspace setup](https://nx.dev/getting-started/intro#learn-nx?utm_source=nx_project&amp;utm_medium=readme&amp;utm_campaign=nx_projects)
-- [Learn about Nx on CI](https://nx.dev/ci/intro/ci-with-nx?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
-- [Releasing Packages with Nx release](https://nx.dev/features/manage-releases?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
-- [What are Nx plugins?](https://nx.dev/concepts/nx-plugins?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
-
-And join the Nx community:
-- [Discord](https://go.nx.dev/community)
-- [Follow us on X](https://twitter.com/nxdevtools) or [LinkedIn](https://www.linkedin.com/company/nrwl)
-- [Our Youtube channel](https://www.youtube.com/@nxdevtools)
-- [Our blog](https://nx.dev/blog?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
+When debugging, check the **Network Tab** in your browser. You should see `remoteEntry.mjs` files being loaded from different ports/URLs. That is the "heartbeat" of Module Federation!
